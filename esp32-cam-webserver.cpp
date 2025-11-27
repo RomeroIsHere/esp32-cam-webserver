@@ -5,7 +5,6 @@
 #include <DNSServer.h>
 #include "src/parsebytes.h"
 
-
 /* This sketch is a extension/expansion/reork of the 'official' ESP32 Camera example
  *  sketch from Expressif:
  *  https://github.com/espressif/arduino-esp32/tree/master/libraries/ESP32/examples/Camera/CameraWebServer
@@ -28,7 +27,7 @@
  *  FOR NETWORK AND HARDWARE SETTINGS COPY OR RENAME 'myconfig.sample.h' TO 'myconfig.h' AND EDIT THAT.
  *
  * By default this sketch will assume an AI-THINKER ESP-CAM and create
- * an accesspoint called "ESP32-CAM-CONNECT" (password: "InsecurePassword")
+ * an accesspoint called "ESP32-CAM-CONNECT" (password: "")
  *
  */
 
@@ -41,7 +40,7 @@
     #define WIFI_AP_ENABLE
     #define CAMERA_MODEL_AI_THINKER
     struct station { const char ssid[65]; const char password[65]; const bool dhcp;} 
-    stationList[] = {{"ESP32-CAM-CONNECT","InsecurePassword", true}};
+stationList[] = {{"ESP32-CAM-CONNECT","", true}};
 #endif
 
 // Upstream version string
@@ -76,7 +75,7 @@ extern void serialDump();
 #if defined(CAM_NAME)
     char myName[] = CAM_NAME;
 #else
-    char myName[] = "ESP32 camera server";
+    char myName[] = "ESP32 Face Recognizer";
 #endif
 
 // Ports for http and stream (override in myconfig.h)
@@ -576,7 +575,7 @@ void setup() {
             s->set_vflip(s, V_FLIP);
         #endif
 
-        // set initial frame rate
+        // set initial frame resolution
         #if defined(DEFAULT_RESOLUTION)
             s->set_framesize(s, DEFAULT_RESOLUTION);
         #else
