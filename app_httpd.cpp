@@ -703,6 +703,12 @@ static esp_err_t cmd_handler(httpd_req_t *req){
             detection_enabled = val;
         }
     }
+    else if(!strcmp(variable, "save_face")) {
+        if (filesystem) saveFaceDB(SPIFFS);
+    }
+    else if(!strcmp(variable, "clear_face")) {
+        if (filesystem) removeFaceDB(SPIFFS);
+    }
     else if(!strcmp(variable, "autolamp") && (lampVal != -1)) {
         autoLamp = val;
         if (autoLamp) {
@@ -720,12 +726,6 @@ static esp_err_t cmd_handler(httpd_req_t *req){
         } else {
             setLamp(lampVal);
         }
-    }
-    else if(!strcmp(variable, "save_face")) {
-        if (filesystem) saveFaceDB(SPIFFS);
-    }
-    else if(!strcmp(variable, "clear_face")) {
-        if (filesystem) removeFaceDB(SPIFFS);
     }
     else if(!strcmp(variable, "save_prefs")) {
         if (filesystem) savePrefs(SPIFFS);
