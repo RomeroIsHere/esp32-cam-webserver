@@ -185,6 +185,11 @@ void removePrefs(fs::FS &fs) {
   }
 }
 
+void removeFaceDB(fs::FS &fs) {
+  //WARNING: Method Stub!!
+  return;
+}
+
 void saveFaceDB(fs::FS &fs) {
   //TODO: Fucking Fix this
   if (fs.exists(FACE_DB_FILE)) {
@@ -205,15 +210,10 @@ void loadFaceDB(fs::FS &fs) {
     File file = fs.open(FACE_DB_FILE, FILE_READ);
     if (!file) {
       Serial.println("Failed to open preferences file for reading, maybe corrupt, removing");
-      removePrefs(SPIFFS);
+      removeFaceDB(SPIFFS);
       return;
     }
     size_t size = file.size();
-    // if (size > PREFERENCES_MAX_SIZE) {
-    //   Serial.println("Preferences file size is too large, maybe corrupt, removing");
-    //   removePrefs(SPIFFS);
-    //   return;
-    // }
     while (file.available()) {
         prefs += char(file.read());
         if (prefs.length() > size) {
