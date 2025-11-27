@@ -186,19 +186,64 @@ void removePrefs(fs::FS &fs) {
 }
 
 void saveFaceDB(fs::FS &fs) {
-  // Stub!
+  //TODO: Fucking Fix this
+  if (fs.exists(FACE_DB_FILE)) {
+    Serial.printf("Updating %s\r\n", FACE_DB_FILE);
+  } else {
+    Serial.printf("Creating %s\r\n", FACE_DB_FILE);
+  }
+  File file = fs.open(FACE_DB_FILE, FILE_WRITE);
+  file.close();
   return;
 }
 void loadFaceDB(fs::FS &fs) {
-  // Stub!
-  return;
+  //TOD:Fucking LOAD the Faces not the Preferences
+  if (fs.exists(FACE_DB_FILE)) {
+    // read file into a string
+    String prefs;
+    Serial.printf("Loading preferences from file %s\r\n", FACE_DB_FILE);
+    File file = fs.open(FACE_DB_FILE, FILE_READ);
+    if (!file) {
+      Serial.println("Failed to open preferences file for reading, maybe corrupt, removing");
+      removePrefs(SPIFFS);
+      return;
+    }
+    size_t size = file.size();
+    // if (size > PREFERENCES_MAX_SIZE) {
+    //   Serial.println("Preferences file size is too large, maybe corrupt, removing");
+    //   removePrefs(SPIFFS);
+    //   return;
+    // }
+    while (file.available()) {
+        prefs += char(file.read());
+        if (prefs.length() > size) {
+          // corrupted SPIFFS files can return data beyond their declared size.
+          Serial.println("Preferences file failed to load properly, appears to be corrupt, removing");
+          removePrefs(SPIFFS);
+          return;
+        }
+    }
+    // get sensor reference
+    sensor_t * s = esp_camera_sensor_get();
+    file.close();
+    } else {
+    Serial.printf("Preference file %s not found; using system defaults.\r\n", PREFERENCES_FILE);
+    }
 }
 void removeFaceDB(fs::FS &fs) {
-  // Stub!
+  if (fs.exists(FACE_DB_FILE)) {
+    Serial.printf("Removing %s\r\n", FACE_DB_FILE);
+    if (!fs.remove(FACE_DB_FILE)) {
+      Serial.println("Error removing preferences");
+    }
+  } else {
+    Serial.println("No saved preferences file to remove");
+  }
   return;
 }
 
 void filesystemStart(){
+  Serial.println("Attempting to Start SPIFFS");
   while ( !SPIFFS.begin(FORMAT_SPIFFS_IF_FAILED) ) {
     // if we sit in this loop something is wrong; 
     // if no existing spiffs partition exists one should be automagically created.
