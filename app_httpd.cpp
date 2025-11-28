@@ -72,8 +72,7 @@ extern unsigned long xclkFreqHz;
 #include "fd_forward.h"
 #include "fr_forward.h"
 
-#define ENROLL_CONFIRM_TIMES 5
-#define FACE_ID_SAVE_NUMBER 7
+
 
 #define FACE_COLOR_WHITE  0x00FFFFFF
 #define FACE_COLOR_BLACK  0x00000000

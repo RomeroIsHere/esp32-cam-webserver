@@ -627,7 +627,6 @@ void setup() {
             delay(200); // a short delay to let spi bus settle after camera init
             filesystemStart();
             loadPrefs(SD_MMC);
-            loadFaceDB(SD_MMC);
         } else {
             Serial.println("No Internal Filesystem, cannot save preferences or face DB");
         }
@@ -655,7 +654,10 @@ void setup() {
 
     // Now we have a network we can start the two http handlers for the UI and Stream.
     startCameraServer(httpPort, streamPort);
-
+    //Can Finally Load Faces
+    if(filesystem){
+        loadFaceDB(SD_MMC);
+    }
     if (critERR.length() == 0) {
         Serial.printf("\r\nCamera Ready!\r\nUse '%s' to connect\r\n", httpURL);
         Serial.printf("Stream viewer available at '%sview'\r\n", streamURL);

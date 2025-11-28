@@ -233,23 +233,57 @@ void saveFaceDB(fs::FS &fs, dl_matrix3du_t *aligned_face, int faceID, int sample
   file.close();
   return;
 }
-void loadFaceDB(fs::FS &fs) {//FACE_WIDTH
+void loadFaceDB(fs::FS &fs) {//FACE_WIDTH is 56
   digitalWrite(4,LOW);
-  //TOD:Go on a Loop to REload every image in Order
-  if (fs.exists(FileNameBuffer)) {
-    // read file into a string
-    String prefs;
-    Serial.printf("Loading Faces from file %s\r\n", FileNameBuffer);
-    File file = fs.open(FileNameBuffer, FILE_READ);
-    if (!file) {
-      Serial.println("Failed to open faces file for reading, maybe corrupt, removing");
-      removeFaceDB(fs);
-      return;
+  for(int faceID=1; faceID<=FACE_ID_SAVE_NUMBER;faceID++){
+  //TOD:Go on a Loop to REload every Sample image in Order
+  bool HasAllFaces=true;
+    for(int sample=ENROLL_CONFIRM_TIMES-1;sample>=0;sample--){
+      strFaceDBNameBuilder(faceID,sample);
+      Serial.printf("Attempting Faces from file %s\r\n", FileNameBuffer);
+        if (!fs.exists(FileNameBuffer)) {
+          Serial.printf("Face file %s not found; Will Discard All faces.\r\n", FileNameBuffer);
+          HasAllFaces=true;
+        }
     }
-    // get sensor reference
-    file.close();
-  } else {
-    Serial.printf("Face file %s not found; using system defaults.\r\n", FileNameBuffer);
+    for(int sample=ENROLL_CONFIRM_TIMES-1;sample>=0;sample--){
+      strFaceDBNameBuilder(faceID,sample);
+      Serial.printf("Attempting Faces from file %s\r\n", FileNameBuffer);
+        if (fs.exists(FileNameBuffer)) {
+          if(HasAllFaces){
+          // read file into RAM
+            Serial.printf("Loading Faces from file %s\r\n", FileNameBuffer);
+            File file = fs.open(FileNameBuffer, FILE_READ);
+            if (!file) {
+              Serial.println("Failed to open faces file for reading, maybe corrupt, removing");
+              removeFaceDB(fs);
+              return;
+            }
+            dl_matrix3du_t *image_matrix = dl_matrix3du_alloc(1, FACE_WIDTH, FACE_HEIGHT, 3);
+            //Copy into Buffer
+            if(!image_matrix){
+              Serial.println("Failed to Allocate faces Buffer");
+              break;
+            }else{
+              Serial.println("Reading");
+              file.readBytes((char*) image_matrix->item,image_matrix->w * image_matrix->h * 3);
+              //Re enroll
+              Serial.println("Enrolling Sample Faces");
+              reenrollFace(image_matrix);
+              //Dispose
+              Serial.println("Disposing of Buffer");
+              dl_matrix3du_free(image_matrix);
+            }
+            file.close();
+          }else{
+            Serial.printf("Cleaning up fileDB %s;\r\n", FileNameBuffer);  
+            removeFaceDB(fs);
+          }
+        } else {
+          Serial.printf("Face file %s not found;\r\n", FileNameBuffer);
+
+        }
+    }
   }
 }
 void removeFaceDB(fs::FS &fs) {

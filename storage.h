@@ -12,6 +12,8 @@
 #define FACE_DB_FILE  "/esp32cam-facedb-"
 #define FACE_DB_RGB888_FILE_EXT ".rgb888"
 #define MAX_FILENAME_LENGTH 30
+#define ENROLL_CONFIRM_TIMES 5
+#define FACE_ID_SAVE_NUMBER 7
 
 extern void dumpPrefs(fs::FS &fs);
 extern void loadPrefs(fs::FS &fs);
