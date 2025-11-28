@@ -229,48 +229,8 @@ static void draw_face_boxes(dl_matrix3du_t *image_matrix, box_array_t *boxes, in
 
 
 int enrollFace(dl_matrix3du_t *image_matrix){
-    box_array_t *net_boxes = face_detect(image_matrix, &mtmn_config);//uses MTMN to Detect where the Face is
-    //Unused But Carried Over from Proper DrawingBoxes
-    //bool detected;
-    //int face_id;
-    int8_t left_sample_face;
-    if (net_boxes){//if Face Detectcion didn't Fail
-        //detected = true; Unused
-        if(recognition_enabled){//Sanity Check to See if Recognition Has Been Disabled Somehow
-            //face_id = run_face_recognition(image_matrix, net_boxes);
-            dl_matrix3du_t *aligned_face = NULL;
-            aligned_face = dl_matrix3du_alloc(1, FACE_WIDTH, FACE_HEIGHT, 3);
-            if(!aligned_face){
-                Serial.println("FaceDB: could not allocate face recognition buffer");
-            }else{
-                if (align_face(net_boxes, image_matrix, aligned_face) == ESP_OK){
-                    if (is_enrolling == 1){
-                        int8_t this_face = id_list.tail + 1;//Only Used for Logging Purposes
-                        left_sample_face = enroll_face(&id_list, aligned_face);//Returns How Many enrollments are Left IG????
-                        if(left_sample_face == (ENROLL_CONFIRM_TIMES - 1)){
-                            Serial.printf("FaceDB: enrolling Saved face ID: %d\r\n", this_face); //Only Talk The First time
-                        }
-                        Serial.printf("FaceDB: enroll ID: %d sample %d\r\n", this_face, ENROLL_CONFIRM_TIMES - left_sample_face);//Tells You How many Enrollment Images are Left
-                        rgb_printf(image_matrix, FACE_COLOR_CYAN, "ID[%u] Sample[%u]", this_face, ENROLL_CONFIRM_TIMES - left_sample_face);//Streams The Enrolled Face
-                        if (left_sample_face == 0){
-                            is_enrolling = 0;//Stops Enrolling Process
-                            Serial.printf("FaceDB: enrolled face ID: %d\r\n", this_face);//Prints that We finished enrolling
-                        }
-                    }
-                }
-                dl_matrix3du_free(aligned_face);//Frees the memory used, If it Was not Null
-            }
-        }
-        //Following Function Would Show the Boxes And ID Of The Face, But it Is Unnecesary for Preregistered Faces
-        //draw_face_boxes(image_matrix, net_boxes, face_id);
-
-        //Free all memory From NetBox
-        //No need to free If NetBoxes is Null Anyways so This stays Inside Braces
-        dl_lib_free(net_boxes->score);
-        dl_lib_free(net_boxes->box);
-        dl_lib_free(net_boxes->landmark);
-        dl_lib_free(net_boxes);
-    }
+    //WARNING: Method Stub
+    return -1;
 }
 
 static int run_face_recognition(dl_matrix3du_t *image_matrix, box_array_t *net_boxes){
@@ -283,18 +243,24 @@ static int run_face_recognition(dl_matrix3du_t *image_matrix, box_array_t *net_b
         return matched_id;
     }
     if (align_face(net_boxes, image_matrix, aligned_face) == ESP_OK){
+        //Whenever it Gets to This Point The Face has Already been identified and Extracted to a smaller Buffer
         if (is_enrolling == 1){
             int8_t this_face = id_list.tail + 1;
-            int8_t left_sample_face = enroll_face(&id_list, aligned_face);//Returns How Many enrollments are Left IG????
+            int8_t left_sample_face = enroll_face(&id_list, aligned_face);//Returns How Many enrollments are Left. In theory it Should NOT Cause Any issues since Face Has Been Detected Already
 
             if(left_sample_face == (ENROLL_CONFIRM_TIMES - 1)){
                 Serial.printf("FACE: enrolling new face ID: %d\r\n", this_face); //Only Talk The First time
             }
             Serial.printf("FACE: enroll ID: %d sample %d\r\n", this_face, ENROLL_CONFIRM_TIMES - left_sample_face);//Tells You How many Enrollment Images are Left
             rgb_printf(image_matrix, FACE_COLOR_CYAN, "ID[%u] Sample[%u]", this_face, ENROLL_CONFIRM_TIMES - left_sample_face);//Streams The Enrolled Face
-            if (left_sample_face == 0){
-                is_enrolling = 0;//Stops Enrolling Process
-                Serial.printf("FACE: enrolled face ID: %d\r\n", this_face);//Prints that We finished enrolling
+            
+            if(left_sample_face!=-1){
+                // * @param aligned_face is dl_matrix3du_t Of ONLY the Face. Store this.
+
+                if (left_sample_face == 0){
+                    is_enrolling = 0;//Stops Enrolling Process
+                    Serial.printf("FACE: enrolled face ID: %d\r\n", this_face);//Prints that We finished enrolling
+                }
             }
         } else {
             //Process to Show and Stream the Recognized Face
@@ -453,7 +419,7 @@ static esp_err_t capture_handler(httpd_req_t *req){
         if (autoLamp && (lampVal != -1)) setLamp(0);
         return res;
     }
-
+    //No Early Return
     dl_matrix3du_t *image_matrix = dl_matrix3du_alloc(1, fb->width, fb->height, 3);
     if (!image_matrix) {
         esp_camera_fb_return(fb);
@@ -478,10 +444,11 @@ if(!s){
         if (autoLamp && (lampVal != -1)) setLamp(0);
         return ESP_FAIL;
     }
+    //Didn't Fail the RGB888 Conversion
 
     box_array_t *net_boxes = face_detect(image_matrix, &mtmn_config);
-
-    if (net_boxes){
+    
+    if (net_boxes){//Detected a Face
         detected = true;
         if(recognition_enabled){
             face_id = run_face_recognition(image_matrix, net_boxes);

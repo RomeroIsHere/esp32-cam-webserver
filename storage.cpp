@@ -9,7 +9,14 @@ extern int lampVal;                 // The current Lamp value
 extern int autoLamp;                // Automatic lamp mode
 extern int8_t detection_enabled;    // Face detection enable
 extern int8_t recognition_enabled;  // Face recognition enable
+//This One Comes fomr app_httpd.cpp
 
+
+#include "fb_gfx.h"
+#include "fd_forward.h"
+#include "fr_forward.h"
+
+extern int enrollFace(dl_matrix3du_t *image_matrix);
 
 /*
  * Useful utility when debugging... 
