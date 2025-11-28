@@ -1,6 +1,10 @@
 #include "FS.h"
 #include "SD_MMC.h"
 
+#include "fb_gfx.h"
+#include "fd_forward.h"
+#include "fr_forward.h"
+
 #define FORMAT_SD_IF_FAILED true
 #define PREFERENCES_MAX_SIZE 500
 

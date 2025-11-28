@@ -12,9 +12,6 @@ extern int8_t recognition_enabled;  // Face recognition enable
 //This One Comes fomr app_httpd.cpp
 
 
-#include "fb_gfx.h"
-#include "fd_forward.h"
-#include "fr_forward.h"
 
 extern int reenrollFace(dl_matrix3du_t *aligned_face);
 
