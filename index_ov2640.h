@@ -367,7 +367,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
         } else if(el.id === "awb_gain"){
           value ? show(wb) : hide(wb)
         } else if(el.id === "face_recognize"){
-          if (value){enable(enrollButton);enable(clearFaceButton);enable(saveFaceButton);} else {disable(enrollButton);disable(clearFaceButton);disable(saveFaceButton);}
+          if (value){enable(enrollButton);enable(clearFaceButton);} else {disable(enrollButton);disable(clearFaceButton);}
         } else if(el.id === "lamp"){
           if (value == -1) { 
             hide(lampGroup)
@@ -521,9 +521,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
     enrollButton.onclick = () => {
       updateConfig(enrollButton);
     }
-    saveFaceButton.onclick = () => {
-      updateConfig(saveFaceButton);
-    }
+    
     clearFaceButton.onclick = () => {
       updateConfig(clearFaceButton);
     }
@@ -590,7 +588,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
       updateConfig(detect)
       if (!detect.checked) {
         disable(enrollButton)
-        disable(saveFaceButton)
+        
         disable(clearFaceButton)
         updateValue(recognize, false)
       }
@@ -605,12 +603,11 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
       updateConfig(recognize)
       if (recognize.checked) {
         enable(enrollButton)
-        enable(saveFaceButton)
+        
         enable(clearFaceButton)
         updateValue(detect, true)
       } else {
         disable(enrollButton)
-        disable(saveFaceButton)
         disable(clearFaceButton)
       }
     }
@@ -618,12 +615,6 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
     swapButton.onclick = () => {
       window.open('/?view=simple','_self');
     }
- 
-//    saveFaceButton.onclick = () => {
-//      if (confirm("Saving the current face database?")) {
-//        updateConfig(saveFaceButton);
-//      }
-//    }
 
 //    clearFaceButton.onclick = () => {
 //      if (confirm("Removing the face database?")) {

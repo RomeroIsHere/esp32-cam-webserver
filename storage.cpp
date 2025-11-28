@@ -16,7 +16,10 @@ extern int8_t recognition_enabled;  // Face recognition enable
 #include "fd_forward.h"
 #include "fr_forward.h"
 
-extern int enrollFace(dl_matrix3du_t *image_matrix);
+extern int reenrollFace(dl_matrix3du_t *aligned_face);
+
+
+static char FileNameBuffer[MAX_FILENAME_LENGTH];
 
 /*
  * Useful utility when debugging... 
@@ -210,57 +213,57 @@ void removePrefs(fs::FS &fs) {
   }
 }
 
-void saveFaceDB(fs::FS &fs) {
+void strFaceDBNameBuilder(int faceID=1, int sample=0, const char *start=FACE_DB_FILE, const char *fileExt=FACE_DB_RGB888_FILE_EXT){
+  sprintf(FileNameBuffer,"%s%d-%d%s",start,faceID,sample,fileExt);
+}
+
+void saveFaceDB(fs::FS &fs, dl_matrix3du_t *aligned_face, int faceID, int sample) {
   digitalWrite(4,LOW);
+  strFaceDBNameBuilder(faceID,sample);
   //TODO: Fucking Fix this
-  if (fs.exists(FACE_DB_FILE)) {
-    Serial.printf("Updating %s\r\n", FACE_DB_FILE);
+  if (fs.exists(FileNameBuffer)) {
+    Serial.printf("Updating %s\r\n", FileNameBuffer);
   } else {
-    Serial.printf("Creating %s\r\n", FACE_DB_FILE);
+    Serial.printf("Creating %s\r\n", FileNameBuffer);
   }
-  File file = fs.open(FACE_DB_FILE, FILE_WRITE);
+  File file = fs.open(FileNameBuffer, FILE_WRITE);
+  if(!file){
+    Serial.println("Failed to open file in writing mode");
+  } else {
+    file.write(aligned_face->item, aligned_face->h *  aligned_face->w * 3); // payload (image), payload length
+    Serial.printf("Saved file to path: %s\r\n", FileNameBuffer);
+  }
   file.close();
   return;
 }
-void loadFaceDB(fs::FS &fs) {
+void loadFaceDB(fs::FS &fs) {//FACE_WIDTH
   digitalWrite(4,LOW);
-  //TOD:Fucking LOAD the Faces not the Preferences
-  if (fs.exists(FACE_DB_FILE)) {
+  //TOD:Go on a Loop to REload every image in Order
+  if (fs.exists(FileNameBuffer)) {
     // read file into a string
     String prefs;
-    Serial.printf("Loading preferences from file %s\r\n", FACE_DB_FILE);
-    File file = fs.open(FACE_DB_FILE, FILE_READ);
+    Serial.printf("Loading Faces from file %s\r\n", FileNameBuffer);
+    File file = fs.open(FileNameBuffer, FILE_READ);
     if (!file) {
-      Serial.println("Failed to open preferences file for reading, maybe corrupt, removing");
+      Serial.println("Failed to open faces file for reading, maybe corrupt, removing");
       removeFaceDB(fs);
       return;
     }
-    size_t size = file.size();
-
-    while (file.available()) {
-        prefs += char(file.read());
-        if (prefs.length() > size) {
-          // corrupted files can return data beyond their declared size.
-          Serial.println("Preferences file failed to load properly, appears to be corrupt, removing");
-          removePrefs(fs);
-          return;
-        }
-    }
     // get sensor reference
     file.close();
-    } else {
-    Serial.printf("Preference file %s not found; using system defaults.\r\n", PREFERENCES_FILE);
-    }
+  } else {
+    Serial.printf("Face file %s not found; using system defaults.\r\n", FileNameBuffer);
+  }
 }
 void removeFaceDB(fs::FS &fs) {
   digitalWrite(4,LOW);
-  if (fs.exists(FACE_DB_FILE)) {
-    Serial.printf("Removing %s\r\n", FACE_DB_FILE);
-    if (!fs.remove(FACE_DB_FILE)) {
+  if (fs.exists(FileNameBuffer)) {
+    Serial.printf("Removing %s\r\n", FileNameBuffer);
+    if (!fs.remove(FileNameBuffer)) {
       Serial.println("Error removing preferences");
     }
   } else {
-    Serial.println("No saved preferences file to remove");
+    Serial.printf("%s Does not Exist\r\n", FileNameBuffer);
   }
   return;
 }

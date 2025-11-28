@@ -228,9 +228,23 @@ static void draw_face_boxes(dl_matrix3du_t *image_matrix, box_array_t *boxes, in
      */
 
 
-int enrollFace(dl_matrix3du_t *image_matrix){
-    //WARNING: Method Stub
-    return -1;
+int reenrollFace(dl_matrix3du_t *aligned_face){
+    int8_t this_face = id_list.tail + 1;
+    int8_t left_sample_face = enroll_face(&id_list, aligned_face);//Returns How Many samples are Left. In theory it Should NOT Cause Any issues since Face Has Been Detected Already
+
+    if(left_sample_face == (ENROLL_CONFIRM_TIMES - 1)){
+        Serial.printf("FaceDB: reenrolling new face ID: %d\r\n", this_face); //Only Talk The First time
+    }
+    Serial.printf("FaceDB: enroll ID: %d sample %d\r\n", this_face, ENROLL_CONFIRM_TIMES - left_sample_face);//Tells You How many Enrollment Images are Left
+    if(left_sample_face!=-1){
+        // * @param aligned_face is dl_matrix3du_t Of ONLY the Face. Store this.
+
+        if (left_sample_face == 0){
+            is_enrolling = 0;//Stops Enrolling Process
+            Serial.printf("FACE: enrolled face ID: %d\r\n", this_face);//Prints that We finished enrolling
+        }
+    }
+    return left_sample_face;
 }
 
 static int run_face_recognition(dl_matrix3du_t *image_matrix, box_array_t *net_boxes){
@@ -256,8 +270,10 @@ static int run_face_recognition(dl_matrix3du_t *image_matrix, box_array_t *net_b
             
             if(left_sample_face!=-1){
                 // * @param aligned_face is dl_matrix3du_t Of ONLY the Face. Store this.
-
-                if (left_sample_face == 0){
+                if(filesystem){
+                    saveFaceDB(SD_MMC,aligned_face,this_face,left_sample_face);
+                }
+                if (left_sample_face == 0){//Supposed to go From 0 to 4. -> left_sample_face
                     is_enrolling = 0;//Stops Enrolling Process
                     Serial.printf("FACE: enrolled face ID: %d\r\n", this_face);//Prints that We finished enrolling
                 }
@@ -722,16 +738,17 @@ static esp_err_t cmd_handler(httpd_req_t *req){
             recognition_enabled = 0;
         }
     }
-    else if(!strcmp(variable, "face_enroll")) is_enrolling = val;
+    else if(!strcmp(variable, "face_enroll") || !strcmp(variable, "save_face")) is_enrolling = val;
     else if(!strcmp(variable, "face_recognize")) {
         recognition_enabled = val;
         if(recognition_enabled){
             detection_enabled = val;
         }
     }
-    else if(!strcmp(variable, "save_face")) {
-        if (filesystem) saveFaceDB(SD_MMC);
-    }
+    //No longer Makes sense to use it like this
+    // else if(!strcmp(variable, "save_face")) {
+    //     if (filesystem) saveFaceDB(SD_MMC);
+    // }
     else if(!strcmp(variable, "clear_face")) {
         if (filesystem) removeFaceDB(SD_MMC);
     }
