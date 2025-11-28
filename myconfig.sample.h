@@ -134,7 +134,7 @@ struct station stationList[] = {{"ssid1", "pass1", true},
 // Define the startup lamp power setting (as a percentage, defaults to 0%)
 // #define LAMP_DEFAULT 0
 
-// Assume the module used has a SPIFFS/LittleFS partition, and use that for persistent setting storage
+// Assume the module used has a SD_MMC partition, and use that for persistent setting storage
 // Uncomment to disable this this, the controls will still be shown in the UI but are inoperative.
 // #define NO_FS
 

@@ -316,15 +316,18 @@ void serialDump() {
         Serial.printf("- High resolution/quality settings will show incomplete frames due to low memory.\r\n");
     }
     // Filesystems
-    if (filesystem && (SPIFFS.totalBytes() > 0)) {
-        Serial.printf("Spiffs: %i, used: %i\r\n", SPIFFS.totalBytes(), SPIFFS.usedBytes());
+    if (filesystem && (SD_MMC.totalBytes() > 0)) {
+        int totesBytes=SD_MMC.totalBytes();
+        int usedBytes=SD_MMC.usedBytes();
+
+        Serial.printf("SD_MMC: %i, used: %i\r\n", totesBytes , usedBytes);
     } else {
-        Serial.printf("Spiffs: No filesystem found, please check your board configuration.\r\n");
+        Serial.printf("SD_MMC: No filesystem found, please check your board configuration.\r\n");
         Serial.printf("- Saving and restoring camera settings will not function without this.\r\n");
     }
     Serial.printf("Enrolled faces: %i (max %i)\r\n", id_list.count, id_list.size);
     Serial.println("Preferences file: ");
-    dumpPrefs(SPIFFS);
+    dumpPrefs(SD_MMC);
     if (critERR.length() > 0) {
         Serial.printf("\r\n\r\nA critical error has occurred when initialising Camera Hardware, see startup megssages\r\n");
     }
@@ -704,10 +707,10 @@ static esp_err_t cmd_handler(httpd_req_t *req){
         }
     }
     else if(!strcmp(variable, "save_face")) {
-        if (filesystem) saveFaceDB(SPIFFS);
+        if (filesystem) saveFaceDB(SD_MMC);
     }
     else if(!strcmp(variable, "clear_face")) {
-        if (filesystem) removeFaceDB(SPIFFS);
+        if (filesystem) removeFaceDB(SD_MMC);
     }
     else if(!strcmp(variable, "autolamp") && (lampVal != -1)) {
         autoLamp = val;
@@ -728,10 +731,10 @@ static esp_err_t cmd_handler(httpd_req_t *req){
         }
     }
     else if(!strcmp(variable, "save_prefs")) {
-        if (filesystem) savePrefs(SPIFFS);
+        if (filesystem) savePrefs(SD_MMC);
     }
     else if(!strcmp(variable, "clear_prefs")) {
-        if (filesystem) removePrefs(SPIFFS);
+        if (filesystem) removePrefs(SD_MMC);
     }
     else if(!strcmp(variable, "reboot")) {
         esp_task_wdt_init(3,true);  // schedule a a watchdog panic event for 3 seconds in the future
@@ -919,10 +922,12 @@ static esp_err_t dump_handler(httpd_req_t *req){
         d+= sprintf(d,"Psram: <span style=\"color:red;\">Not found</span>, please check your board configuration.<br>\n");
         d+= sprintf(d,"- High resolution/quality images & streams will show incomplete frames due to low memory.<br>\n");
     }
-    if (filesystem && (SPIFFS.totalBytes() > 0)) {
-        d+= sprintf(d,"Spiffs: %i, used: %i<br>\n", SPIFFS.totalBytes(), SPIFFS.usedBytes());
+    if (filesystem && (SD_MMC.totalBytes() > 0)) {
+        int totesBytes=SD_MMC.totalBytes();
+        int usedBytes=SD_MMC.usedBytes();
+        d+= sprintf(d,"SD_MMC: %i, used: %i<br>\r\n", totesBytes, usedBytes);
     } else {
-        d+= sprintf(d,"Spiffs: <span style=\"color:red;\">No filesystem found</span>, please check your board configuration.<br>\n");
+        d+= sprintf(d,"SD_MMC: <span style=\"color:red;\">No filesystem found</span>, please check your board configuration.<br>\n");
         d+= sprintf(d,"- saving and restoring camera settings will not function without this.<br>\n");
     }
     d+= sprintf(d,"Enrolled faces: %i (max %i)<br>\n", id_list.count, id_list.size);

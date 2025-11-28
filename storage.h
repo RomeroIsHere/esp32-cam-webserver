@@ -1,12 +1,11 @@
 #include "FS.h"
-#include "SPIFFS.h"
 #include "SD_MMC.h"
 
 #define FORMAT_SD_IF_FAILED true
 #define PREFERENCES_MAX_SIZE 500
 
 #define PREFERENCES_FILE "/esp32cam-preferences.json"
-#define FACE_DB_FILE  "/esp32cam-facedb"
+#define FACE_DB_FILE  "/esp32cam-facedb.bin"
 
 extern void dumpPrefs(fs::FS &fs);
 extern void loadPrefs(fs::FS &fs);

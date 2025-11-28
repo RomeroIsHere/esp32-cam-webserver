@@ -367,7 +367,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
         } else if(el.id === "awb_gain"){
           value ? show(wb) : hide(wb)
         } else if(el.id === "face_recognize"){
-          value ? {enable(enrollButton);enable(clearFaceButton);enable(saveFaceButton);} : {disable(enrollButton);disable(clearFaceButton);disable(saveFaceButton);}
+          if (value){enable(enrollButton);enable(clearFaceButton);enable(saveFaceButton);} else {disable(enrollButton);disable(clearFaceButton);disable(saveFaceButton);}
         } else if(el.id === "lamp"){
           if (value == -1) { 
             hide(lampGroup)

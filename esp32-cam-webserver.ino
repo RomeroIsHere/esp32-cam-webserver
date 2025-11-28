@@ -4,6 +4,8 @@
 #include <WiFi.h>
 #include <DNSServer.h>
 #include "src/parsebytes.h"
+#include "soc/soc.h"           // Disable brownout problems
+#include "soc/rtc_cntl_reg.h" 
 
 /* This sketch is a extension/expansion/reork of the 'official' ESP32 Camera example
  *  sketch from Expressif:
@@ -49,7 +51,7 @@ stationList[] = {{"ESP32-CAM-CONNECT","", true}};
 // Pin Mappings
 #include "camera_pins.h"
 
-// Internal filesystem (SPIFFS)
+// Internal filesystem (SD_MMC)
 // used for non-volatile camera settings and face DB store
 #include "storage.h"
 
@@ -457,6 +459,9 @@ void WifiSetup() {
 }
 
 void setup() {
+    
+    WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable brownout detector
+
     // This might reduce boot loops caused by camera init failures when soft rebooting
     // See, for instance, https://esp32.com/viewtopic.php?t=3152
     Serial.begin(115200);
@@ -482,7 +487,7 @@ void setup() {
         pinMode(LED_PIN, OUTPUT);
         digitalWrite(LED_PIN, LED_ON);
     #endif
-
+    pinMode(4, OUTPUT);
     // Create camera config structure; and populate with hardware and other defaults 
     camera_config_t config;
     config.ledc_channel = LEDC_CHANNEL_0;
@@ -621,8 +626,8 @@ void setup() {
         if (filesystem) {
             delay(200); // a short delay to let spi bus settle after camera init
             filesystemStart();
-            loadPrefs(SPIFFS);
-            loadFaceDB(SPIFFS);
+            loadPrefs(SD_MMC);
+            loadFaceDB(SD_MMC);
         } else {
             Serial.println("No Internal Filesystem, cannot save preferences or face DB");
         }

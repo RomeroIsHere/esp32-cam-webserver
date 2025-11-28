@@ -15,6 +15,7 @@ extern int8_t recognition_enabled;  // Face recognition enable
  */
 
 void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
+  digitalWrite(4,LOW);
   Serial.printf("Listing File System directory: %s\r\n", dirname);
 
   File root = fs.open(dirname);
@@ -62,6 +63,7 @@ void dumpPrefs(fs::FS &fs){
 }
 
 void loadPrefs(fs::FS &fs){
+  digitalWrite(4,LOW);
   if (fs.exists(PREFERENCES_FILE)) {
     // read file into a string
     String prefs;
@@ -128,14 +130,25 @@ void loadPrefs(fs::FS &fs){
 }
 
 void savePrefs(fs::FS &fs){
+  digitalWrite(4,LOW);
   if (fs.exists(PREFERENCES_FILE)) {
     Serial.printf("Updating %s\r\n", PREFERENCES_FILE);
   } else {
     Serial.printf("Creating %s\r\n", PREFERENCES_FILE);
   }
+  
+  Serial.println("Preferences file Opening");
+
   File file = fs.open(PREFERENCES_FILE, FILE_WRITE);
+  if (!file) {
+      Serial.println("Failed to open preferences file for Writing, Exiting");
+      return;
+  }else{
+      Serial.println("Opened preferences file for Writing");
+  }
   static char json_response[1024];
   sensor_t * s = esp_camera_sensor_get();
+  Serial.println("Got ESP CAM Reference");
   char * p = json_response;
   *p++ = '{';
   p+=sprintf(p, "\"lamp\":%i,", lampVal);
@@ -169,12 +182,16 @@ void savePrefs(fs::FS &fs){
   p+=sprintf(p, "\"rotate\":\"%d\"", myRotation);
   *p++ = '}';
   *p++ = 0;
+  Serial.println("finished Getting All Settings, Writing as Print");
   file.print(json_response);
+  Serial.println("finished Saving All Settings, Closing File");
   file.close();
+  Serial.println("Closed File");
   dumpPrefs(fs);
 }
 
 void removePrefs(fs::FS &fs) {
+  digitalWrite(4,LOW);
   if (fs.exists(PREFERENCES_FILE)) {
     Serial.printf("Removing %s\r\n", PREFERENCES_FILE);
     if (!fs.remove(PREFERENCES_FILE)) {
@@ -186,6 +203,7 @@ void removePrefs(fs::FS &fs) {
 }
 
 void saveFaceDB(fs::FS &fs) {
+  digitalWrite(4,LOW);
   //TODO: Fucking Fix this
   if (fs.exists(FACE_DB_FILE)) {
     Serial.printf("Updating %s\r\n", FACE_DB_FILE);
@@ -197,6 +215,7 @@ void saveFaceDB(fs::FS &fs) {
   return;
 }
 void loadFaceDB(fs::FS &fs) {
+  digitalWrite(4,LOW);
   //TOD:Fucking LOAD the Faces not the Preferences
   if (fs.exists(FACE_DB_FILE)) {
     // read file into a string
@@ -220,13 +239,13 @@ void loadFaceDB(fs::FS &fs) {
         }
     }
     // get sensor reference
-    sensor_t * s = esp_camera_sensor_get();
     file.close();
     } else {
     Serial.printf("Preference file %s not found; using system defaults.\r\n", PREFERENCES_FILE);
     }
 }
 void removeFaceDB(fs::FS &fs) {
+  digitalWrite(4,LOW);
   if (fs.exists(FACE_DB_FILE)) {
     Serial.printf("Removing %s\r\n", FACE_DB_FILE);
     if (!fs.remove(FACE_DB_FILE)) {
@@ -239,8 +258,9 @@ void removeFaceDB(fs::FS &fs) {
 }
 
 void filesystemStart(){
-  Serial.println("Attempting to Start SD");
-  while ( !SD_MMC.begin("/sdcard", false, FORMAT_SD_IF_FAILED)) {
+  digitalWrite(4,LOW);
+  Serial.println("Attempting to Start SD Filesystem");
+  while ( !SD_MMC.begin()) {
     // if we sit in this loop something is wrong; 
     // if no existing SD partition exists one should be automagically created.
     Serial.println("SD Mount failed, this can happen on first-run initialisation.");
@@ -261,6 +281,9 @@ void filesystemStart(){
     }
     delay(500);
     Serial.println("Retrying..");
+  }else{
+    Serial.println("SD Card Detected");
+    Serial.printf("SD Card of type:  %d\r\n", cardType);
   }
   
   Serial.println("Internal filesystem contents");
