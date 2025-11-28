@@ -15,7 +15,7 @@ extern int8_t recognition_enabled;  // Face recognition enable
  */
 
 void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
-  Serial.printf("Listing SPIFFS directory: %s\r\n", dirname);
+  Serial.printf("Listing File System directory: %s\r\n", dirname);
 
   File root = fs.open(dirname);
   if(!root){
@@ -69,21 +69,21 @@ void loadPrefs(fs::FS &fs){
     File file = fs.open(PREFERENCES_FILE, FILE_READ);
     if (!file) {
       Serial.println("Failed to open preferences file for reading, maybe corrupt, removing");
-      removePrefs(SPIFFS);
+      removePrefs(fs);
       return;
     }
     size_t size = file.size();
     if (size > PREFERENCES_MAX_SIZE) {
       Serial.println("Preferences file size is too large, maybe corrupt, removing");
-      removePrefs(SPIFFS);
+      removePrefs(fs);
       return;
     }
     while (file.available()) {
         prefs += char(file.read());
         if (prefs.length() > size) {
-          // corrupted SPIFFS files can return data beyond their declared size.
+          // corrupted files can return data beyond their declared size.
           Serial.println("Preferences file failed to load properly, appears to be corrupt, removing");
-          removePrefs(SPIFFS);
+          removePrefs(fs);
           return;
         }
     }
@@ -121,7 +121,7 @@ void loadPrefs(fs::FS &fs){
     myRotation = jsonExtract(prefs, "rotate").toInt();
     // close the file
     file.close();
-    dumpPrefs(SPIFFS);
+    dumpPrefs(fs);
   } else {
     Serial.printf("Preference file %s not found; using system defaults.\r\n", PREFERENCES_FILE);
   }
@@ -171,7 +171,7 @@ void savePrefs(fs::FS &fs){
   *p++ = 0;
   file.print(json_response);
   file.close();
-  dumpPrefs(SPIFFS);
+  dumpPrefs(fs);
 }
 
 void removePrefs(fs::FS &fs) {
@@ -183,11 +183,6 @@ void removePrefs(fs::FS &fs) {
   } else {
     Serial.println("No saved preferences file to remove");
   }
-}
-
-void removeFaceDB(fs::FS &fs) {
-  //WARNING: Method Stub!!
-  return;
 }
 
 void saveFaceDB(fs::FS &fs) {
@@ -210,16 +205,17 @@ void loadFaceDB(fs::FS &fs) {
     File file = fs.open(FACE_DB_FILE, FILE_READ);
     if (!file) {
       Serial.println("Failed to open preferences file for reading, maybe corrupt, removing");
-      removeFaceDB(SPIFFS);
+      removeFaceDB(fs);
       return;
     }
     size_t size = file.size();
+
     while (file.available()) {
         prefs += char(file.read());
         if (prefs.length() > size) {
-          // corrupted SPIFFS files can return data beyond their declared size.
+          // corrupted files can return data beyond their declared size.
           Serial.println("Preferences file failed to load properly, appears to be corrupt, removing");
-          removePrefs(SPIFFS);
+          removePrefs(fs);
           return;
         }
     }
@@ -243,19 +239,30 @@ void removeFaceDB(fs::FS &fs) {
 }
 
 void filesystemStart(){
-  Serial.println("Attempting to Start SPIFFS");
-  while ( !SPIFFS.begin(FORMAT_SPIFFS_IF_FAILED) ) {
+  Serial.println("Attempting to Start SD");
+  while ( !SD_MMC.begin("/sdcard", false, FORMAT_SD_IF_FAILED)) {
     // if we sit in this loop something is wrong; 
-    // if no existing spiffs partition exists one should be automagically created.
-    Serial.println("SPIFFS Mount failed, this can happen on first-run initialisation.");
-    Serial.println("If it happens repeatedly check if a SPIFFS partition is present for your board?");
+    // if no existing SD partition exists one should be automagically created.
+    Serial.println("SD Mount failed, this can happen on first-run initialisation.");
+    Serial.println("If it happens repeatedly check if a SD is present for your board?");
     for (int i=0; i<10; i++) {
-      flashLED(100); // Show SPIFFS failure
+      flashLED(100); // Show SD failure
       delay(100);
     }
     delay(1000);
     Serial.println("Retrying..");
   }
+  uint8_t cardType = SD_MMC.cardType();
+  if(cardType == CARD_NONE){
+    Serial.println("No SD Card attached");
+    for (int i=0; i<10; i++) {
+      flashLED(200); // Show SD failure
+      delay(100);
+    }
+    delay(500);
+    Serial.println("Retrying..");
+  }
+  
   Serial.println("Internal filesystem contents");
-  listDir(SPIFFS, "/", 0);
+  listDir(SD_MMC, "/", 0);
 }

@@ -1,7 +1,8 @@
 #include "FS.h"
 #include "SPIFFS.h"
+#include "SD_MMC.h"
 
-#define FORMAT_SPIFFS_IF_FAILED true
+#define FORMAT_SD_IF_FAILED true
 #define PREFERENCES_MAX_SIZE 500
 
 #define PREFERENCES_FILE "/esp32cam-preferences.json"
