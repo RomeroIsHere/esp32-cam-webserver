@@ -10,6 +10,7 @@ extern int autoLamp;                // Automatic lamp mode
 extern int8_t detection_enabled;    // Face detection enable
 extern int8_t recognition_enabled;  // Face recognition enable
 
+
 /*
  * Useful utility when debugging... 
  */
