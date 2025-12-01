@@ -30,7 +30,7 @@
   #define LED_ON           LOW // - Pin is inverted.
   #define LED_OFF         HIGH //
   #define LAMP_PIN           4 // LED FloodLamp.
-  #define ENTER_BUTTON
+  #define RELAY_PIN         3//To Relay
 
 #elif defined(CAMERA_MODEL_WROVER_KIT)
   //
