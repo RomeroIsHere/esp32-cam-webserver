@@ -7,6 +7,7 @@
 #include "soc/soc.h"           // Disable brownout problems
 #include "soc/rtc_cntl_reg.h" 
 
+
 /* This sketch is a extension/expansion/reork of the 'official' ESP32 Camera example
  *  sketch from Expressif:
  *  https://github.com/espressif/arduino-esp32/tree/master/libraries/ESP32/examples/Camera/CameraWebServer

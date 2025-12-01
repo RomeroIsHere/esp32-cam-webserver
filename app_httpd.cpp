@@ -117,6 +117,7 @@ static mtmn_config_t mtmn_config = {0};
 static int8_t is_enrolling = 0;
 static face_id_list id_list = {0};
 int id_list_alloc = 0;
+volatile bool GlobalDetected;
 
 static ra_filter_t * ra_filter_init(ra_filter_t * filter, size_t sample_size){
     memset(filter, 0, sizeof(ra_filter_t));
@@ -468,6 +469,7 @@ if(!s){
         if(recognition_enabled){
             face_id = run_face_recognition(image_matrix, net_boxes);
         }
+        GlobalDetected = face_id>0;
         draw_face_boxes(image_matrix, net_boxes, face_id);
         dl_lib_free(net_boxes->score);
         dl_lib_free(net_boxes->box);
@@ -585,6 +587,7 @@ static esp_err_t stream_handler(httpd_req_t *req){
                                 if(recognition_enabled){
                                     face_id = run_face_recognition(image_matrix, net_boxes);
                                 }
+                                GlobalDetected = face_id>0;;
                                 fr_recognize = esp_timer_get_time();
                                 draw_face_boxes(image_matrix, net_boxes, face_id);
                                 dl_lib_free(net_boxes->score);
