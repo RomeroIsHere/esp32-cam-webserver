@@ -72,6 +72,9 @@ IPAddress gw;
 // Declare external function from app_httpd.cpp
 extern void startCameraServer(int hPort, int sPort);
 extern void serialDump();
+extern volatile bool GlobalDetected;
+bool doorIsOpen;
+unsigned long start = millis();
 
 // A Name for the Camera. (set in myconfig.h)
 #if defined(CAM_NAME)
@@ -219,7 +222,7 @@ void handleSerial() {
         char cmd = Serial.read();
         if (cmd == 'd' ) {
             serialDump();
-        } else {
+        }else{
             if (debugData) debugOff();
             else debugOn();
         }
@@ -248,6 +251,18 @@ void setLamp(int newVal) {
         Serial.print(newVal);
         Serial.print("%, pwm = ");
         Serial.println(brightness);
+    }
+}
+//ENTER_BUTTON input
+//RELAY_PIN output
+//Magnetic Door Handler
+void door(bool state){
+    digitalWrite(RELAY_PIN,state);
+    GlobalDetected=false;
+    if(state){
+    Serial.println("Closed The Door");
+    }else{
+    Serial.println("Opened The Door");
     }
 }
 
@@ -488,6 +503,8 @@ void setup() {
         digitalWrite(LED_PIN, LED_ON);
     #endif
     pinMode(4, OUTPUT);
+    pinMode(RELAY_PIN, OUTPUT);
+    digitalWrite(RELAY_PIN, true);//high to keep Closed
     // Create camera config structure; and populate with hardware and other defaults 
     camera_config_t config;
     config.ledc_channel = LEDC_CHANNEL_0;
@@ -626,6 +643,8 @@ void setup() {
         if (filesystem) {
             delay(200); // a short delay to let spi bus settle after camera init
             filesystemStart();
+            pinMode(4, OUTPUT);
+
             loadPrefs(SD_MMC);
         } else {
             Serial.println("No Internal Filesystem, cannot save preferences or face DB");
@@ -644,6 +663,7 @@ void setup() {
         ledcAttachPin(LAMP_PIN, lampChannel);            // attach the GPIO pin to the channel
     } else {
         Serial.println("No lamp, or lamp disabled in config");
+        
     }
 
     // Having got this far; start Wifi and loop until we are connected or have started an AccessPoint
@@ -687,17 +707,28 @@ void setup() {
 
 }
 
+
 void loop() {
     /* 
      *  Just loop forever, reconnecting Wifi As necesscary in client mode
      * The stream and URI handler processes initiated by the startCameraServer() call at the
      * end of setup() will handle the camera and UI processing from now on.
     */
+    static unsigned long LastOpened = millis();
+    if(GlobalDetected){
+        door(false);
+        LastOpened = millis();
+        doorIsOpen=true;
+    }
+    if(doorIsOpen && LastOpened<millis()-(10000)){
+        door(true);
+        doorIsOpen=false;
+    }
     if (accesspoint) {
         // Accespoint is permanently up, so just loop, servicing the captive portal as needed
         // Rather than loop forever, follow the watchdog, in case we later add auto re-scan.
-        unsigned long start = millis();
         while (millis() - start < WIFI_WATCHDOG ) {
+            start = millis();
             delay(100);
             handleSerial();
             if (captivePortal) dnsServer.processNextRequest();
@@ -713,10 +744,10 @@ void loop() {
                 warned = false;
             }
             // loop here for WIFI_WATCHDOG, turning debugData true/false depending on serial input..
-            unsigned long start = millis();
             while (millis() - start < WIFI_WATCHDOG ) {
                 delay(100);
                 handleSerial();
+                start = millis();
             }
         } else {
             // disconnected; attempt to reconnect
@@ -728,5 +759,6 @@ void loop() {
             }
             WifiSetup();
         }
+
     }
 }
