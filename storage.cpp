@@ -13,7 +13,7 @@ extern int8_t recognition_enabled;  // Face recognition enable
 
 
 
-extern int f(dl_matrix3du_t *aligned_face);
+extern int reenrollFace(dl_matrix3du_t *aligned_face);
 
 
 static char FileNameBuffer[MAX_FILENAME_LENGTH];
@@ -55,7 +55,7 @@ void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
 }
 
 void dumpPrefs(fs::FS &fs){
-  digitalWrite(4,LOW);
+  
   if (fs.exists(PREFERENCES_FILE)) {
     // Dump contents for debug
     File file = fs.open(PREFERENCES_FILE, FILE_READ);
