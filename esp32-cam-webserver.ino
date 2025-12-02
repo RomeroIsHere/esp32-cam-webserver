@@ -644,8 +644,7 @@ void setup() {
         if (filesystem) {
             delay(200); // a short delay to let spi bus settle after camera init
             filesystemStart();
-            pinMode(4, OUTPUT);
-
+            //pinMode(4, OUTPUT);
             loadPrefs(SD_MMC);
         } else {
             Serial.println("No Internal Filesystem, cannot save preferences or face DB");
